@@ -5,7 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#0d6e4f" />
 <meta name="description" content="Caderneta online de controle financeiro da bodega." />
-<link rel="manifest" href="manifest.json" />
+
+<!-- Configurações PWA Obrigatórias -->
+<link rel="manifest" href="./manifest.json" />
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="./icone-192.png">
+
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d6e4f'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%F0%9F%93%92%3C/text%3E%3C/svg%3E" />
 <title>Caderneta da Bodega</title>
 <style>
@@ -54,7 +61,6 @@
   .icone-toggle-saldo { cursor: pointer; transition: transform 0.2s; }
   .icone-toggle-saldo:active { transform: scale(0.9); }
 
-  /* 4 Botões na Navegação Inferior */
   nav.tabs {
     display:flex; position:fixed; bottom:0; left:0; right:0; z-index:20;
     background:#fff; box-shadow:0 -2px 12px rgba(0,0,0,.08);
@@ -252,6 +258,17 @@
   <button data-abrir="resumo" type="button"><span class="ic">📊</span>Resumo</button>
 </nav>
 
+<!-- Script para registrar o Service Worker (PWA) de forma limpa -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function() {
+      navigator.serviceWorker.register("./sw.js").catch(function(err) {
+        console.log("Erro ao registrar Service Worker: ", err);
+      });
+    });
+  }
+</script>
+
 <!-- Firebase SDK v10 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -287,7 +304,6 @@
 
   $("rData").value = hoje();
 
-  // Retração automática do painel de valores após 13 segundos
   setTimeout(function() {
     $("painelValores").classList.add("oculto");
   }, 13000);
@@ -296,7 +312,6 @@
     $("painelValores").classList.toggle("oculto");
   });
 
-  // Abas
   document.querySelectorAll("nav.tabs button").forEach(function (bt) {
     bt.addEventListener("click", function () {
       document.querySelectorAll("nav.tabs button").forEach(function (b) { b.classList.remove("ativo"); });
@@ -318,7 +333,6 @@
   setTipo("entrada");
   $("fData").value = hoje();
 
-  // Salvar no Firestore (Geral)
   $("btSalvar").addEventListener("click", async function () {
     var valor = parseFloat($("fValor").value);
     var desc = $("fDesc").value.trim();
@@ -347,7 +361,6 @@
     } catch (e) {}
   });
 
-  // Salvar Roupas no Firestore
   $("btSalvarRoupa").addEventListener("click", async function () {
     var valor = parseFloat($("rValor").value);
     var desc = $("rDesc").value.trim();
@@ -372,7 +385,6 @@
     } catch (e) {}
   });
 
-  // Filtros do Histórico
   var FILTROS = [
     ["todos", "📋 Tudo"],
     ["pendente", "⏳ Em Aberto"],
@@ -395,30 +407,21 @@
   });
 
   async function alternarPago(id, statusAtual) {
-    try {
-      await updateDoc(doc(db, "lancamentos", id), { pago: !statusAtual });
-    } catch (e) {}
+    try { await updateDoc(doc(db, "lancamentos", id), { pago: !statusAtual }); } catch (e) {}
   }
 
   async function excluir(id) {
-    try {
-      await deleteDoc(doc(db, "lancamentos", id));
-    } catch (e) {}
+    try { await deleteDoc(doc(db, "lancamentos", id)); } catch (e) {}
   }
 
   async function alternarPagoRoupa(id, statusAtual) {
-    try {
-      await updateDoc(doc(db, "roupas", id), { pago: !statusAtual });
-    } catch (e) {}
+    try { await updateDoc(doc(db, "roupas", id), { pago: !statusAtual }); } catch (e) {}
   }
 
   async function excluirRoupa(id) {
-    try {
-      await deleteDoc(doc(db, "roupas", id));
-    } catch (e) {}
+    try { await deleteDoc(doc(db, "roupas", id)); } catch (e) {}
   }
 
-  // Renderizar Tudo
   function render() {
     var ent = 0, sai = 0, entTotal = 0, saiTotal = 0;
 
@@ -432,7 +435,6 @@
       }
     });
 
-    // Somar roupas pendentes nas saídas também se quiser consolidar
     roupas.forEach(function (r) {
       saiTotal += r.valor;
       if (!r.pago) sai += r.valor;
@@ -449,7 +451,6 @@
     $("resSai").textContent = fmt(saiTotal);
     $("resSaldo").textContent = fmt(saldoPendente);
 
-    // Renderizar Histórico Geral
     var lista = lancamentos.slice().sort(function (a, b) { return b.data.localeCompare(a.data) || (b.criadoEm || 0) - (a.criadoEm || 0); });
     if (filtro === "pendente") lista = lista.filter(function(l) { return !l.pago; });
     else if (filtro === "pago") lista = lista.filter(function(l) { return l.pago; });
@@ -490,7 +491,6 @@
       b.addEventListener("click", function () { excluir(b.dataset.id); });
     });
 
-    // Renderizar Lista de Roupas
     var htmlRoupas = "";
     if (!roupas.length) {
       htmlRoupas = '<div class="vazio">Nenhuma compra de roupa cadastrada.</div>';
@@ -533,7 +533,6 @@
       '</div>';
   }
 
-  // Backup TXT
   $("btExportar").addEventListener("click", function () {
     var txt = "CADERNETA BODEGA E ROUPAS - HISTÓRICO\nGerado em: " + new Date().toLocaleString("pt-BR") + "\n\n--- BODEGA ---\n";
     lancamentos.forEach(function (l) {
@@ -551,14 +550,12 @@
     URL.revokeObjectURL(a.href);
   });
 
-  // Tempo real do Firestore (Bodega)
   onSnapshot(query(collection(db, "lancamentos"), orderBy("data", "desc")), (snap) => {
     lancamentos = [];
     snap.forEach((d) => { lancamentos.push({ id: d.id, ...d.data() }); });
     render();
   });
 
-  // Tempo real do Firestore (Roupas)
   onSnapshot(query(collection(db, "roupas"), orderBy("data", "desc")), (snap) => {
     roupas = [];
     snap.forEach((d) => { roupas.push({ id: d.id, ...d.data() }); });
