@@ -1,5 +1,5 @@
-const cacheName = "caderneta-bodega-v2";
-const arquivos = ["./", "./index.html", "./manifest.json"];
+const cacheName = "caderneta-bodega-v3";
+const arquivos = ["./", "./index.html", "./manifest.json", "./icone-192.png", "./icone-512.png"];
 
 self.addEventListener("install", function(e) {
   e.waitUntil(
