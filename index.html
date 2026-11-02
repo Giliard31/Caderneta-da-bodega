@@ -20,7 +20,7 @@
   body {
     font-family: -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
     background:var(--bg); color:var(--texto);
-    padding-bottom:90px; max-width:520px; margin:0 auto; min-height:100vh;
+    padding-bottom:95px; max-width:520px; margin:0 auto; min-height:100vh;
   }
   header {
     background:linear-gradient(135deg,var(--verde),var(--verde-esc));
@@ -30,7 +30,6 @@
   header h1 { font-size:1.25rem; display:flex; align-items:center; gap:8px; }
   header p { font-size:.8rem; opacity:.85; margin-top:2px; }
   
-  /* Painel de Valores Retrátil */
   .painel-valores {
     max-height: 200px;
     overflow: hidden;
@@ -55,18 +54,20 @@
   .icone-toggle-saldo { cursor: pointer; transition: transform 0.2s; }
   .icone-toggle-saldo:active { transform: scale(0.9); }
 
+  /* 4 Botões na Navegação Inferior */
   nav.tabs {
     display:flex; position:fixed; bottom:0; left:0; right:0; z-index:20;
     background:#fff; box-shadow:0 -2px 12px rgba(0,0,0,.08);
-    border-radius:18px 18px 0 0; justify-content:space-around; padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+    border-radius:18px 18px 0 0; justify-content:space-around; padding:8px 2px calc(8px + env(safe-area-inset-bottom));
     max-width:520px; margin:0 auto;
   }
   nav.tabs button {
-    flex:1; background:none; border:none; font-size:.68rem; color:var(--cinza);
-    display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 2px; cursor:pointer;
+    flex:1; background:none; border:none; font-size:.62rem; color:var(--cinza);
+    display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 1px; cursor:pointer;
   }
-  nav.tabs button .ic { font-size:1.4rem; line-height:1; }
+  nav.tabs button .ic { font-size:1.3rem; line-height:1; }
   nav.tabs button.ativo { color:var(--verde); font-weight:700; }
+  
   main { padding:16px 14px 6px; }
   .painel { display:none; animation:aparecer .18s ease; }
   .painel.ativo { display:block; }
@@ -92,6 +93,7 @@
   }
   .btn-lancar:active { background:var(--verde-esc); }
   .msg-ok { display:none; margin-top:10px; text-align:center; font-size:.85rem; color:var(--verde); font-weight:600; }
+  
   .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
   .mini-card { background:var(--card); border-radius:var(--raio); padding:12px 8px; text-align:center; border:1px solid var(--borda); box-shadow:var(--sombra); }
   .mini-card .rot { font-size:.7rem; color:var(--cinza); text-transform:uppercase; font-weight:600; }
@@ -102,16 +104,12 @@
   .lanc { background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:12px 14px; margin-bottom:10px;
     display:flex; flex-direction:column; gap:8px; box-shadow:var(--sombra); position:relative; }
   .lanc-header { display:flex; align-items:center; gap:12px; width:100%; }
-  .lanc .ico { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-  .lanc.ent .ico { background:var(--verde-claro); }
-  .lanc.sai .ico { background:var(--vermelho-claro); }
+  .lanc .ico { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; background:var(--verde-claro); }
   .lanc .info { flex:1; min-width:0; }
   .lanc .desc { font-weight:600; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .lanc .meta { font-size:.72rem; color:var(--cinza); margin-top:2px; }
   .lanc .autor { display:inline-block; font-size:.68rem; font-weight:700; background:#edf2f0; color:var(--verde-esc); padding:2px 6px; border-radius:6px; margin-top:4px; }
-  .lanc .valor { font-weight:800; font-size:.95rem; text-align:right; }
-  .lanc.ent .valor { color:var(--verde); }
-  .lanc.sai .valor { color:var(--vermelho); }
+  .lanc .valor { font-weight:800; font-size:.95rem; text-align:right; color:var(--vermelho); }
   
   .lanc.quitado { opacity: 0.65; background: #fafafa; }
   .lanc.quitado .desc, .lanc.quitado .valor { text-decoration: line-through; }
@@ -200,7 +198,30 @@
     <div id="listaLanc"></div>
   </section>
 
-  <!-- ABA 3: RESUMO -->
+  <!-- ABA 3: ROUPAS / DÍVIDAS EXTERNAS -->
+  <section class="painel" id="painel-roupas">
+    <div class="card">
+      <h2>👕 Registrar Compra de Roupas</h2>
+      <label for="rValor">Valor da Roupa (R$)</label>
+      <input type="number" id="rValor" inputmode="decimal" step="0.01" min="0" placeholder="0,00" />
+      
+      <label for="rDesc">Descrição / Detalhes</label>
+      <input type="text" id="rDesc" placeholder="Ex.: Calça, camisa, etc." />
+
+      <label for="rData">Data</label>
+      <input type="date" id="rData" />
+
+      <button class="btn-lancar" id="btSalvarRoupa" type="button">💾 Adicionar Dívida de Roupa</button>
+      <div class="msg-ok" id="msgOkRoupa">✅ Dívida de roupa cadastrada!</div>
+    </div>
+
+    <div class="card">
+      <h2>🧾 Histórico de Roupas (Dívidas Externas)</h2>
+      <div id="listaRoupas"></div>
+    </div>
+  </section>
+
+  <!-- ABA 4: RESUMO -->
   <section class="painel" id="painel-resumo">
     <div class="grid3">
       <div class="mini-card"><div class="rot">Entradas</div><div class="val ent" id="resEnt">R$ 0,00</div></div>
@@ -217,7 +238,6 @@
     <div class="card">
       <h2>⚙️ Opções</h2>
       <button class="btn-lancar" id="btExportar" style="background:#28b485" type="button">📤 Exportar Backup (.txt)</button>
-      <button class="btn-lancar" id="btLimpar" style="background:var(--vermelho);margin-top:10px" type="button">🗑️ Limpar Todos os Dados</button>
     </div>
   </section>
 
@@ -228,13 +248,14 @@
 <nav class="tabs">
   <button class="ativo" data-abrir="lancar" type="button"><span class="ic">✍️</span>Lançar</button>
   <button data-abrir="extrato" type="button"><span class="ic">🧾</span>Histórico</button>
+  <button data-abrir="roupas" type="button"><span class="ic">👕</span>Roupas</button>
   <button data-abrir="resumo" type="button"><span class="ic">📊</span>Resumo</button>
 </nav>
 
-<!-- Firebase SDK v10 (Modular via CDN) -->
+<!-- Firebase SDK v10 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyC1FDnUoYDjWCU3-RkO18aNwX-SgRbAZWE",
@@ -250,6 +271,7 @@
   const db = getFirestore(app);
 
   var lancamentos = [];
+  var roupas = [];
   var CATS_ENT = ["Vendas da bodega", "Renda extra", "Salário", "Outros"];
   var CATS_SAI = ["Compras Bodega", "Mercado / Casa", "Contas (Luz/Água)", "Transporte", "Saúde", "Outros"];
   var ICOS = { "Vendas da bodega":"🏪", "Renda extra":"✨", "Salário":"💼", "Compras Bodega":"🛒", "Mercado / Casa":"🏠", "Contas (Luz/Água)":"⚡", "Transporte":"🚌", "Saúde":"💊", "Outros":"📌" };
@@ -263,12 +285,13 @@
   }
   function hoje() { var d = new Date(); return d.toISOString().slice(0, 10); }
 
+  $("rData").value = hoje();
+
   // Retração automática do painel de valores após 13 segundos
   setTimeout(function() {
     $("painelValores").classList.add("oculto");
   }, 13000);
 
-  // Botão do saquinho de dinheiro para mostrar/ocultar os valores
   $("btnToggleSaldo").addEventListener("click", function() {
     $("painelValores").classList.toggle("oculto");
   });
@@ -295,13 +318,13 @@
   setTipo("entrada");
   $("fData").value = hoje();
 
-  // Salvar no Firestore e limpar campos focando no valor
+  // Salvar no Firestore (Geral)
   $("btSalvar").addEventListener("click", async function () {
     var valor = parseFloat($("fValor").value);
     var desc = $("fDesc").value.trim();
     var usuario = $("fUsuario").value;
 
-    if (!valor || valor <= 0) { $("fValor").focus(); alert("Digite um valor válido."); return; }
+    if (!valor || valor <= 0) { $("fValor").focus(); return; }
 
     try {
       await addDoc(collection(db, "lancamentos"), {
@@ -315,19 +338,41 @@
         criadoEm: Date.now()
       });
 
-      // Limpar campos e mandar o cursor de volta para o valor
       $("fValor").value = ""; 
       $("fDesc").value = "";
       $("fValor").focus();
 
       $("msgOk").style.display = "block";
       setTimeout(function () { $("msgOk").style.display = "none"; }, 1800);
-    } catch (e) {
-      alert("Erro ao salvar: " + e.message);
-    }
+    } catch (e) {}
   });
 
-  // Filtros
+  // Salvar Roupas no Firestore
+  $("btSalvarRoupa").addEventListener("click", async function () {
+    var valor = parseFloat($("rValor").value);
+    var desc = $("rDesc").value.trim();
+
+    if (!valor || valor <= 0) { $("rValor").focus(); return; }
+
+    try {
+      await addDoc(collection(db, "roupas"), {
+        valor: valor,
+        desc: desc || "Compra de Roupa",
+        data: $("rData").value || hoje(),
+        pago: false,
+        criadoEm: Date.now()
+      });
+
+      $("rValor").value = "";
+      $("rDesc").value = "";
+      $("rValor").focus();
+
+      $("msgOkRoupa").style.display = "block";
+      setTimeout(function () { $("msgOkRoupa").style.display = "none"; }, 1800);
+    } catch (e) {}
+  });
+
+  // Filtros do Histórico
   var FILTROS = [
     ["todos", "📋 Tudo"],
     ["pendente", "⏳ Em Aberto"],
@@ -349,27 +394,31 @@
     });
   });
 
-  // Alternar Status de Pago
   async function alternarPago(id, statusAtual) {
     try {
-      var docRef = doc(db, "lancamentos", id);
-      await updateDoc(docRef, { pago: !statusAtual });
-    } catch (e) {
-      alert("Erro ao atualizar: " + e.message);
-    }
+      await updateDoc(doc(db, "lancamentos", id), { pago: !statusAtual });
+    } catch (e) {}
   }
 
-  // Excluir Lançamento
   async function excluir(id) {
-    if (!confirm("Remover definitivamente este item?")) return;
     try {
       await deleteDoc(doc(db, "lancamentos", id));
-    } catch (e) {
-      alert("Erro ao excluir: " + e.message);
-    }
+    } catch (e) {}
   }
 
-  // Renderizar
+  async function alternarPagoRoupa(id, statusAtual) {
+    try {
+      await updateDoc(doc(db, "roupas", id), { pago: !statusAtual });
+    } catch (e) {}
+  }
+
+  async function excluirRoupa(id) {
+    try {
+      await deleteDoc(doc(db, "roupas", id));
+    } catch (e) {}
+  }
+
+  // Renderizar Tudo
   function render() {
     var ent = 0, sai = 0, entTotal = 0, saiTotal = 0;
 
@@ -383,9 +432,14 @@
       }
     });
 
+    // Somar roupas pendentes nas saídas também se quiser consolidar
+    roupas.forEach(function (r) {
+      saiTotal += r.valor;
+      if (!r.pago) sai += r.valor;
+    });
+
     var saldoPendente = ent - sai;
 
-    // Atualizar cabeçalho (Receita, Compras, Saldo)
     $("topoReceita").textContent = fmt(entTotal);
     $("topoCompras").textContent = fmt(saiTotal);
     $("topoSaldo").textContent = fmt(saldoPendente);
@@ -395,8 +449,8 @@
     $("resSai").textContent = fmt(saiTotal);
     $("resSaldo").textContent = fmt(saldoPendente);
 
+    // Renderizar Histórico Geral
     var lista = lancamentos.slice().sort(function (a, b) { return b.data.localeCompare(a.data) || (b.criadoEm || 0) - (a.criadoEm || 0); });
-
     if (filtro === "pendente") lista = lista.filter(function(l) { return !l.pago; });
     else if (filtro === "pago") lista = lista.filter(function(l) { return l.pago; });
     else if (filtro === "entrada" || filtro === "saida") lista = lista.filter(function(l) { return l.tipo === filtro; });
@@ -407,7 +461,7 @@
     } else {
       lista.forEach(function (l) {
         var statusPago = l.pago ? 'quitado' : '';
-        var tagPago = l.pago ? '<span class="tag-pago">✅ PAGO / QUITADO</span>' : '';
+        var tagPago = l.pago ? '<span class="tag-pago">✅ PAGO</span>' : '';
         var txtBtnPago = l.pago ? '↩️ Desfazer' : '✔️ Marcar Pago';
 
         html += '<div class="lanc ' + (l.tipo === "entrada" ? "ent" : "sai") + ' ' + statusPago + '">' +
@@ -418,7 +472,7 @@
               '<div class="meta">' + l.data.split("-").reverse().join("/") + ' · ' + l.cat + '</div>' +
               '<div class="autor">👤 Por: ' + (l.usuario || "N/A") + '</div>' +
             '</div>' +
-            '<div class="valor">' + (l.tipo === "entrada" ? "+" : "−") + ' ' + fmt(l.valor) + '</div>' +
+            '<div class="valor" style="color:' + (l.tipo === "entrada" ? "var(--verde)" : "var(--vermelho)") + '">' + (l.tipo === "entrada" ? "+" : "−") + ' ' + fmt(l.valor) + '</div>' +
           '</div>' +
           '<div class="lanc-acoes">' +
             '<button class="btn-acao btn-pago" data-id="' + l.id + '" data-pago="' + l.pago + '">' + txtBtnPago + '</button>' +
@@ -427,7 +481,6 @@
         '</div>';
       });
     }
-
     $("listaLanc").innerHTML = html;
 
     document.querySelectorAll(".btn-pago").forEach(function (b) {
@@ -437,41 +490,78 @@
       b.addEventListener("click", function () { excluir(b.dataset.id); });
     });
 
+    // Renderizar Lista de Roupas
+    var htmlRoupas = "";
+    if (!roupas.length) {
+      htmlRoupas = '<div class="vazio">Nenhuma compra de roupa cadastrada.</div>';
+    } else {
+      roupas.slice().sort(function(a,b){ return b.data.localeCompare(a.data); }).forEach(function(r) {
+        var stRoupa = r.pago ? 'quitado' : '';
+        var tgRoupa = r.pago ? '<span class="tag-pago">✅ PAGO</span>' : '';
+        var txtRoupa = r.pago ? '↩️ Desfazer' : '✔️ Pagar Dívida';
+
+        htmlRoupas += '<div class="lanc ' + stRoupa + '">' +
+          '<div class="lanc-header">' +
+            '<div class="ico">👕</div>' +
+            '<div class="info">' +
+              '<div class="desc">' + r.desc + tgRoupa + '</div>' +
+              '<div class="meta">' + r.data.split("-").reverse().join("/") + ' · Roupa (Dívida Externa)</div>' +
+            '</div>' +
+            '<div class="valor">' + fmt(r.valor) + '</div>' +
+          '</div>' +
+          '<div class="lanc-acoes">' +
+            '<button class="btn-acao btn-pago-roupa" data-id="' + r.id + '" data-pago="' + r.pago + '">' + txtRoupa + '</button>' +
+            '<button class="btn-acao btn-del-roupa" data-id="' + r.id + '">🗑️ Apagar</button>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+    $("listaRoupas").innerHTML = htmlRoupas;
+
+    document.querySelectorAll(".btn-pago-roupa").forEach(function (b) {
+      b.addEventListener("click", function () { alternarPagoRoupa(b.dataset.id, b.dataset.pago === "true"); });
+    });
+    document.querySelectorAll(".btn-del-roupa").forEach(function (b) {
+      b.addEventListener("click", function () { excluirRoupa(b.dataset.id); });
+    });
+
     $("resumoGeral").innerHTML =
       '<div style="font-size:0.85rem; line-height:1.6">' +
-      '<div><b>Total de registros:</b> ' + lancamentos.length + '</div>' +
-      '<div><b>Em aberto:</b> ' + lancamentos.filter(function(l){return !l.pago;}).length + '</div>' +
-      '<div><b>Pagos/Quitados:</b> ' + lancamentos.filter(function(l){return l.pago;}).length + '</div>' +
+      '<div><b>Total de registros bodega:</b> ' + lancamentos.length + '</div>' +
+      '<div><b>Dívidas de roupas cadastradas:</b> ' + roupas.length + '</div>' +
+      '<div><b>Pendentes gerais:</b> ' + (lancamentos.filter(function(l){return !l.pago;}).length + roupas.filter(function(r){return !r.pago;}).length) + '</div>' +
       '</div>';
   }
 
   // Backup TXT
   $("btExportar").addEventListener("click", function () {
-    var txt = "CADERNETA BODEGA - HISTÓRICO\nGerado em: " + new Date().toLocaleString("pt-BR") + "\n\n";
+    var txt = "CADERNETA BODEGA E ROUPAS - HISTÓRICO\nGerado em: " + new Date().toLocaleString("pt-BR") + "\n\n--- BODEGA ---\n";
     lancamentos.forEach(function (l) {
-      txt += l.data.split("-").reverse().join("/") + " | REGISTRADO POR: " + (l.usuario || "N/A") + " | " +
-        (l.tipo === "entrada" ? "ENTRADA" : "SAÍDA") + " | " + l.cat + " | " + l.desc +
-        " | R$ " + l.valor.toFixed(2) + " | STATUS: " + (l.pago ? "PAGO/QUITADO" : "PENDENTE") + "\n";
+      txt += l.data.split("-").reverse().join("/") + " | " + l.usuario + " | " + l.tipo.toUpperCase() + " | " + l.cat + " | " + l.desc + " | R$ " + l.valor.toFixed(2) + " | " + (l.pago ? "PAGO" : "PENDENTE") + "\n";
+    });
+    txt += "\n--- ROUPAS ---\n";
+    roupas.forEach(function (r) {
+      txt += r.data.split("-").reverse().join("/") + " | ROUPA | " + r.desc + " | R$ " + r.valor.toFixed(2) + " | " + (r.pago ? "PAGO" : "PENDENTE") + "\n";
     });
     var blob = new Blob([txt], { type: "text/plain" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "caderneta-bodega-backup.txt";
+    a.download = "caderneta-backup-geral.txt";
     a.click();
     URL.revokeObjectURL(a.href);
   });
 
-  $("btLimpar").addEventListener("click", function () {
-    alert("Para limpar os dados da nuvem por segurança, use o painel do Firebase ou exclua individualmente os itens.");
+  // Tempo real do Firestore (Bodega)
+  onSnapshot(query(collection(db, "lancamentos"), orderBy("data", "desc")), (snap) => {
+    lancamentos = [];
+    snap.forEach((d) => { lancamentos.push({ id: d.id, ...d.data() }); });
+    render();
   });
 
-  // Tempo real do Firestore
-  const q = query(collection(db, "lancamentos"), orderBy("data", "desc"));
-  onSnapshot(q, (snapshot) => {
-    lancamentos = [];
-    snapshot.forEach((docSnap) => {
-      lancamentos.push({ id: docSnap.id, ...docSnap.data() });
-    });
+  // Tempo real do Firestore (Roupas)
+  onSnapshot(query(collection(db, "roupas"), orderBy("data", "desc")), (snap) => {
+    roupas = [];
+    snap.forEach((d) => { roupas.push({ id: d.id, ...d.data() }); });
     render();
   });
 </script>
