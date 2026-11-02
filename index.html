@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0d6e4f" />
+<meta name="description" content="Caderneta online de controle financeiro da bodega." />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230d6e4f'/%3E%3Ctext x='50' y='68' font-size='52' text-anchor='middle' fill='white' font-family='sans-serif'%3E%F0%9F%93%92%3C/text%3E%3C/svg%3E" />
+<title>Caderneta da Bodega</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --verde:#0d6e4f; --verde-esc:#0a5238; --verde-claro:#e6f4ee;
+    --vermelho:#c0392b; --vermelho-claro:#fdecea;
+    --bg:#f4f6f5; --card:#ffffff; --texto:#1c2b24; --cinza:#7a8a80;
+    --borda:#e3e9e5; --sombra:0 2px 10px rgba(0,0,0,.07);
+    --raio:14px;
+  }
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Ubuntu, sans-serif;
+    background:var(--bg); color:var(--texto);
+    padding-bottom:90px; max-width:520px; margin:0 auto; min-height:100vh;
+  }
+  header {
+    background:linear-gradient(135deg,var(--verde),var(--verde-esc));
+    color:#fff; padding:22px 18px 18px; position:sticky; top:0; z-index:10;
+    border-radius:0 0 22px 22px; box-shadow:var(--sombra);
+  }
+  header h1 { font-size:1.25rem; display:flex; align-items:center; gap:8px; }
+  header p { font-size:.8rem; opacity:.85; margin-top:2px; }
+  .saldo-box { margin-top:14px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+    border-radius:var(--raio); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; }
+  .saldo-box .rotulo { font-size:.75rem; opacity:.85; text-transform:uppercase; letter-spacing:.5px; }
+  .saldo-box .valor { font-size:1.6rem; font-weight:700; margin-top:2px; }
+  .saldo-box .valor.neg { color:#ffd7d0; }
+  nav.tabs {
+    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:20;
+    background:#fff; box-shadow:0 -2px 12px rgba(0,0,0,.08);
+    border-radius:18px 18px 0 0; justify-content:space-around; padding:8px 4px calc(8px + env(safe-area-inset-bottom));
+    max-width:520px; margin:0 auto;
+  }
+  nav.tabs button {
+    flex:1; background:none; border:none; font-size:.68rem; color:var(--cinza);
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px 2px; cursor:pointer;
+  }
+  nav.tabs button .ic { font-size:1.4rem; line-height:1; }
+  nav.tabs button.ativo { color:var(--verde); font-weight:700; }
+  main { padding:16px 14px 6px; }
+  .painel { display:none; animation:aparecer .18s ease; }
+  .painel.ativo { display:block; }
+  @keyframes aparecer { from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+  .card { background:var(--card); border-radius:var(--raio); box-shadow:var(--sombra); padding:16px; margin-bottom:14px; border:1px solid var(--borda); }
+  .card h2 { font-size:1rem; margin-bottom:12px; display:flex; gap:6px; align-items:center; }
+  label { display:block; font-size:.75rem; color:var(--cinza); font-weight:600; margin:10px 0 4px; }
+  input, select, textarea {
+    width:100%; padding:12px; border:1.5px solid var(--borda); border-radius:10px;
+    font-size:1rem; background:#fbfcfb; color:var(--texto); outline:none;
+  }
+  input:focus, select:focus { border-color:var(--verde); background:#fff; }
+  .tipo-toggle { display:flex; gap:8px; margin-top:10px; }
+  .tipo-toggle button {
+    flex:1; padding:11px; border-radius:10px; border:1.5px solid var(--borda);
+    background:#fbfcfb; font-size:.9rem; font-weight:600; color:var(--cinza); cursor:pointer;
+  }
+  .tipo-toggle button.entrada.sel { background:var(--verde-claro); border-color:var(--verde); color:var(--verde-esc); }
+  .tipo-toggle button.saida.sel { background:var(--vermelho-claro); border-color:var(--vermelho); color:var(--vermelho); }
+  .btn-lancar {
+    width:100%; margin-top:16px; padding:14px; border:none; border-radius:12px;
+    background:var(--verde); color:#fff; font-size:1rem; font-weight:700; cursor:pointer;
+  }
+  .btn-lancar:active { background:var(--verde-esc); }
+  .msg-ok { display:none; margin-top:10px; text-align:center; font-size:.85rem; color:var(--verde); font-weight:600; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .mini-card { background:var(--card); border-radius:var(--raio); padding:12px 8px; text-align:center; border:1px solid var(--borda); box-shadow:var(--sombra); }
+  .mini-card .rot { font-size:.7rem; color:var(--cinza); text-transform:uppercase; font-weight:600; }
+  .mini-card .val { font-size:.95rem; font-weight:800; margin-top:4px; }
+  .mini-card .val.ent { color:var(--verde); }
+  .mini-card .val.sai { color:var(--vermelho); }
+  
+  .lanc { background:var(--card); border:1px solid var(--borda); border-radius:12px; padding:12px 14px; margin-bottom:10px;
+    display:flex; flex-direction:column; gap:8px; box-shadow:var(--sombra); position:relative; }
+  .lanc-header { display:flex; align-items:center; gap:12px; width:100%; }
+  .lanc .ico { width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+  .lanc.ent .ico { background:var(--verde-claro); }
+  .lanc.sai .ico { background:var(--vermelho-claro); }
+  .lanc .info { flex:1; min-width:0; }
+  .lanc .desc { font-weight:600; font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lanc .meta { font-size:.72rem; color:var(--cinza); margin-top:2px; }
+  .lanc .autor { display:inline-block; font-size:.68rem; font-weight:700; background:#edf2f0; color:var(--verde-esc); padding:2px 6px; border-radius:6px; margin-top:4px; }
+  .lanc .valor { font-weight:800; font-size:.95rem; text-align:right; }
+  .lanc.ent .valor { color:var(--verde); }
+  .lanc.sai .valor { color:var(--vermelho); }
+  
+  .lanc.quitado { opacity: 0.65; background: #fafafa; }
+  .lanc.quitado .desc, .lanc.quitado .valor { text-decoration: line-through; }
+  .tag-pago { font-size:.68rem; font-weight:800; color:var(--verde); background:var(--verde-claro); padding:2px 6px; border-radius:6px; margin-left:6px; }
+
+  .lanc-acoes { display:flex; justify-content:flex-end; gap:8px; border-top:1px dashed var(--borda); padding-top:8px; margin-top:2px; }
+  .btn-acao { background:none; border:none; font-size:.75rem; font-weight:600; color:var(--cinza); cursor:pointer; padding:4px 8px; border-radius:6px; }
+  .btn-pago { color:var(--verde); background:var(--verde-claro); }
+  .btn-del { color:var(--vermelho); background:var(--vermelho-claro); }
+
+  .vazio { text-align:center; color:var(--cinza); font-size:.85rem; padding:30px 10px; }
+  .filtro { display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px; }
+  .filtro button { padding:7px 14px; border-radius:20px; border:1.5px solid var(--borda); background:#fff; font-size:.78rem; color:var(--cinza); cursor:pointer; white-space:nowrap; }
+  .filtro button.sel { background:var(--verde); border-color:var(--verde); color:#fff; font-weight:700; }
+  
+  footer { text-align:center; font-size:.7rem; color:var(--cinza); padding:10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>📒 Caderneta da Bodega</h1>
+  <p>Sincronizado na nuvem (Firebase)</p>
+  <div class="saldo-box">
+    <div>
+      <div class="rotulo">Saldo em aberto</div>
+      <div class="valor" id="saldoTopo">R$ 0,00</div>
+    </div>
+    <div style="font-size:2rem">💰</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ABA 1: LANÇAR -->
+  <section class="painel ativo" id="painel-lancar">
+    <div class="card">
+      <h2>✍️ Novo lançamento</h2>
+      
+      <label for="fUsuario">👤 Quem está anotando?</label>
+      <select id="fUsuario" style="font-weight:700; color:var(--verde-esc)">
+        <option value="Giliard">Giliard</option>
+        <option value="Joana">Joana</option>
+      </select>
+
+      <div class="tipo-toggle">
+        <button class="entrada sel" id="btEntrada" type="button">⬇️ Entrada (Renda)</button>
+        <button class="saida" id="btSaida" type="button">⬆️ Saída (Gasto)</button>
+      </div>
+
+      <label for="fValor">Valor (R$)</label>
+      <input type="number" id="fValor" inputmode="decimal" step="0.01" min="0" placeholder="0,00" required />
+      
+      <label for="fDesc">Descrição do Item / Compra</label>
+      <input type="text" id="fDesc" placeholder="Ex.: Mercadoria bodega, conta, etc." />
+      
+      <label for="fCat">Categoria</label>
+      <select id="fCat"></select>
+      
+      <label for="fData">Data</label>
+      <input type="date" id="fData" />
+      
+      <button class="btn-lancar" id="btSalvar" type="button">💾 Salvar na nuvem</button>
+      <div class="msg-ok" id="msgOk">✅ Lançamento salvo com sucesso!</div>
+    </div>
+  </section>
+
+  <!-- ABA 2: HISTÓRICO -->
+  <section class="painel" id="painel-extrato">
+    <div class="filtro" id="filtros"></div>
+    <div id="listaLanc"></div>
+  </section>
+
+  <!-- ABA 3: RESUMO -->
+  <section class="painel" id="painel-resumo">
+    <div class="grid3">
+      <div class="mini-card"><div class="rot">Entradas</div><div class="val ent" id="resEnt">R$ 0,00</div></div>
+      <div class="mini-card"><div class="rot">Saídas</div><div class="val sai" id="resSai">R$ 0,00</div></div>
+      <div class="mini-card"><div class="rot">Pendente</div><div class="val" id="resSaldo">R$ 0,00</div></div>
+    </div>
+    <div style="height:14px"></div>
+    
+    <div class="card">
+      <h2>📊 Resumo das Movimentações</h2>
+      <div id="resumoGeral"></div>
+    </div>
+
+    <div class="card">
+      <h2>⚙️ Opções</h2>
+      <button class="btn-lancar" id="btExportar" style="background:#28b485" type="button">📤 Exportar Backup (.txt)</button>
+      <button class="btn-lancar" id="btLimpar" style="background:var(--vermelho);margin-top:10px" type="button">🗑️ Limpar Todos os Dados</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>Caderneta da Bodega · Giliard & Joana</footer>
+
+<nav class="tabs">
+  <button class="ativo" data-abrir="lancar" type="button"><span class="ic">✍️</span>Lançar</button>
+  <button data-abrir="extrato" type="button"><span class="ic">🧾</span>Histórico</button>
+  <button data-abrir="resumo" type="button"><span class="ic">📊</span>Resumo</button>
+</nav>
+
+<!-- Firebase SDK v10 (Modular via CDN) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyC1FDnUoYDjWCU3-RkO18aNwX-SgRbAZWE",
+    authDomain: "caderneta-da-bodega.firebaseapp.com",
+    projectId: "caderneta-da-bodega",
+    storageBucket: "caderneta-da-bodega.firebasestorage.app",
+    messagingSenderId: "464012179651",
+    appId: "1:464012179651:web:63e88bbf3e12a93995ca76",
+    measurementId: "G-JZ58DZWXFE"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  var lancamentos = [];
+  var CATS_ENT = ["Vendas da bodega", "Renda extra", "Salário", "Outros"];
+  var CATS_SAI = ["Compras Bodega", "Mercado / Casa", "Contas (Luz/Água)", "Transporte", "Saúde", "Outros"];
+  var ICOS = { "Vendas da bodega":"🏪", "Renda extra":"✨", "Salário":"💼", "Compras Bodega":"🛒", "Mercado / Casa":"🏠", "Contas (Luz/Água)":"⚡", "Transporte":"🚌", "Saúde":"💊", "Outros":"📌" };
+
+  var tipo = "entrada";
+  var filtro = "todos";
+  var $ = function (id) { return document.getElementById(id); };
+
+  function fmt(n) {
+    return "R$ " + Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function hoje() { var d = new Date(); return d.toISOString().slice(0, 10); }
+
+  // Abas
+  document.querySelectorAll("nav.tabs button").forEach(function (bt) {
+    bt.addEventListener("click", function () {
+      document.querySelectorAll("nav.tabs button").forEach(function (b) { b.classList.remove("ativo"); });
+      document.querySelectorAll(".painel").forEach(function (p) { p.classList.remove("ativo"); });
+      bt.classList.add("ativo");
+      $("painel-" + bt.dataset.abrir).classList.add("ativo");
+    });
+  });
+
+  function setTipo(t) {
+    tipo = t;
+    $("btEntrada").classList.toggle("sel", t === "entrada");
+    $("btSaida").classList.toggle("sel", t === "saida");
+    var cats = t === "entrada" ? CATS_ENT : CATS_SAI;
+    $("fCat").innerHTML = cats.map(function (c) { return '<option value="' + c + '">' + (ICOS[c] || "📌") + " " + c + "</option>"; }).join("");
+  }
+  $("btEntrada").addEventListener("click", function () { setTipo("entrada"); });
+  $("btSaida").addEventListener("click", function () { setTipo("saida"); });
+  setTipo("entrada");
+  $("fData").value = hoje();
+
+  // Salvar no Firestore
+  $("btSalvar").addEventListener("click", async function () {
+    var valor = parseFloat($("fValor").value);
+    var desc = $("fDesc").value.trim();
+    var usuario = $("fUsuario").value;
+
+    if (!valor || valor <= 0) { $("fValor").focus(); alert("Digite um valor válido."); return; }
+
+    try {
+      await addDoc(collection(db, "lancamentos"), {
+        usuario: usuario,
+        tipo: tipo,
+        valor: valor,
+        desc: desc || (tipo === "entrada" ? "Entrada" : "Gasto"),
+        cat: $("fCat").value,
+        data: $("fData").value || hoje(),
+        pago: false,
+        criadoEm: Date.now()
+      });
+
+      $("fValor").value = ""; $("fDesc").value = "";
+      $("msgOk").style.display = "block";
+      setTimeout(function () { $("msgOk").style.display = "none"; }, 1800);
+    } catch (e) {
+      alert("Erro ao salvar: " + e.message);
+    }
+  });
+
+  // Filtros
+  var FILTROS = [
+    ["todos", "📋 Tudo"],
+    ["pendente", "⏳ Em Aberto"],
+    ["pago", "✅ Quitados"],
+    ["entrada", "⬇️ Entradas"],
+    ["saida", "⬆️ Saídas"]
+  ];
+
+  $("filtros").innerHTML = FILTROS.map(function (f) {
+    return '<button data-f="' + f[0] + '"' + (f[0] === filtro ? ' class="sel"' : "") + ">" + f[1] + "</button>";
+  }).join("");
+
+  document.querySelectorAll("#filtros button").forEach(function (b) {
+    b.addEventListener("click", function () {
+      filtro = b.dataset.f;
+      document.querySelectorAll("#filtros button").forEach(function (x) { x.classList.remove("sel"); });
+      b.classList.add("sel");
+      render();
+    });
+  });
+
+  // Alternar Status de Pago
+  async function alternarPago(id, statusAtual) {
+    try {
+      var docRef = doc(db, "lancamentos", id);
+      await updateDoc(docRef, { pago: !statusAtual });
+    } catch (e) {
+      alert("Erro ao atualizar: " + e.message);
+    }
+  }
+
+  // Excluir Lançamento
+  async function excluir(id) {
+    if (!confirm("Remover definitivamente este item?")) return;
+    try {
+      await deleteDoc(doc(db, "lancamentos", id));
+    } catch (e) {
+      alert("Erro ao excluir: " + e.message);
+    }
+  }
+
+  // Renderizar
+  function render() {
+    var ent = 0, sai = 0, entTotal = 0, saiTotal = 0;
+
+    lancamentos.forEach(function (l) {
+      if (l.tipo === "entrada") {
+        entTotal += l.valor;
+        if (!l.pago) ent += l.valor;
+      } else {
+        saiTotal += l.valor;
+        if (!l.pago) sai += l.valor;
+      }
+    });
+
+    var saldoPendente = ent - sai;
+
+    $("saldoTopo").textContent = fmt(saldoPendente);
+    $("saldoTopo").classList.toggle("neg", saldoPendente < 0);
+    $("resEnt").textContent = fmt(entTotal);
+    $("resSai").textContent = fmt(saiTotal);
+    $("resSaldo").textContent = fmt(saldoPendente);
+
+    var lista = lancamentos.slice().sort(function (a, b) { return b.data.localeCompare(a.data) || (b.criadoEm || 0) - (a.criadoEm || 0); });
+
+    if (filtro === "pendente") lista = lista.filter(function(l) { return !l.pago; });
+    else if (filtro === "pago") lista = lista.filter(function(l) { return l.pago; });
+    else if (filtro === "entrada" || filtro === "saida") lista = lista.filter(function(l) { return l.tipo === filtro; });
+
+    var html = "";
+    if (!lista.length) {
+      html = '<div class="vazio">Nenhum registro encontrado neste filtro.</div>';
+    } else {
+      lista.forEach(function (l) {
+        var statusPago = l.pago ? 'quitado' : '';
+        var tagPago = l.pago ? '<span class="tag-pago">✅ PAGO / QUITADO</span>' : '';
+        var txtBtnPago = l.pago ? '↩️ Desfazer' : '✔️ Marcar Pago';
+
+        html += '<div class="lanc ' + (l.tipo === "entrada" ? "ent" : "sai") + ' ' + statusPago + '">' +
+          '<div class="lanc-header">' +
+            '<div class="ico">' + (ICOS[l.cat] || "📌") + '</div>' +
+            '<div class="info">' +
+              '<div class="desc">' + l.desc + tagPago + '</div>' +
+              '<div class="meta">' + l.data.split("-").reverse().join("/") + ' · ' + l.cat + '</div>' +
+              '<div class="autor">👤 Por: ' + (l.usuario || "N/A") + '</div>' +
+            '</div>' +
+            '<div class="valor">' + (l.tipo === "entrada" ? "+" : "−") + ' ' + fmt(l.valor) + '</div>' +
+          '</div>' +
+          '<div class="lanc-acoes">' +
+            '<button class="btn-acao btn-pago" data-id="' + l.id + '" data-pago="' + l.pago + '">' + txtBtnPago + '</button>' +
+            '<button class="btn-acao btn-del" data-id="' + l.id + '">🗑️ Apagar</button>' +
+          '</div>' +
+        '</div>';
+      });
+    }
+
+    $("listaLanc").innerHTML = html;
+
+    document.querySelectorAll(".btn-pago").forEach(function (b) {
+      b.addEventListener("click", function () { alternarPago(b.dataset.id, b.dataset.pago === "true"); });
+    });
+    document.querySelectorAll(".btn-del").forEach(function (b) {
+      b.addEventListener("click", function () { excluir(b.dataset.id); });
+    });
+
+    $("resumoGeral").innerHTML =
+      '<div style="font-size:0.85rem; line-height:1.6">' +
+      '<div><b>Total de registros:</b> ' + lancamentos.length + '</div>' +
+      '<div><b>Em aberto:</b> ' + lancamentos.filter(function(l){return !l.pago;}).length + '</div>' +
+      '<div><b>Pagos/Quitados:</b> ' + lancamentos.filter(function(l){return l.pago;}).length + '</div>' +
+      '</div>';
+  }
+
+  // Backup TXT
+  $("btExportar").addEventListener("click", function () {
+    var txt = "CADERNETA BODEGA - HISTÓRICO\nGerado em: " + new Date().toLocaleString("pt-BR") + "\n\n";
+    lancamentos.forEach(function (l) {
+      txt += l.data.split("-").reverse().join("/") + " | REGISTRADO POR: " + (l.usuario || "N/A") + " | " +
+        (l.tipo === "entrada" ? "ENTRADA" : "SAÍDA") + " | " + l.cat + " | " + l.desc +
+        " | R$ " + l.valor.toFixed(2) + " | STATUS: " + (l.pago ? "PAGO/QUITADO" : "PENDENTE") + "\n";
+    });
+    var blob = new Blob([txt], { type: "text/plain" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "caderneta-bodega-backup.txt";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Limpar dados locais/aviso
+  $("btLimpar").addEventListener("click", function () {
+    alert("Para limpar os dados da nuvem por segurança, use o painel do Firebase ou exclua individualmente os itens.");
+  });
+
+  // Escutar dados do Firestore em tempo real (Tempo real entre seu celular e o da sua esposa)
+  const q = query(collection(db, "lancamentos"), orderBy("data", "desc"));
+  onSnapshot(q, (snapshot) => {
+    lancamentos = [];
+    snapshot.forEach((docSnap) => {
+      lancamentos.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    render();
+  });
+</script>
+</body>
+</html>
