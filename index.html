@@ -29,11 +29,32 @@
   }
   header h1 { font-size:1.25rem; display:flex; align-items:center; gap:8px; }
   header p { font-size:.8rem; opacity:.85; margin-top:2px; }
-  .saldo-box { margin-top:14px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
-    border-radius:var(--raio); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; }
-  .saldo-box .rotulo { font-size:.75rem; opacity:.85; text-transform:uppercase; letter-spacing:.5px; }
-  .saldo-box .valor { font-size:1.6rem; font-weight:700; margin-top:2px; }
-  .saldo-box .valor.neg { color:#ffd7d0; }
+  
+  /* Painel de Valores Retrátil */
+  .painel-valores {
+    max-height: 200px;
+    overflow: hidden;
+    transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.4s ease;
+    opacity: 1;
+    margin-top: 14px;
+  }
+  .painel-valores.oculto {
+    max-height: 0;
+    opacity: 0;
+    margin-top: 0;
+  }
+
+  .saldo-box { background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.2);
+    border-radius:var(--raio); padding:10px 12px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:6px; text-align:center; }
+  .saldo-box .item-val .rotulo { font-size:.62rem; opacity:.85; text-transform:uppercase; letter-spacing:.3px; }
+  .saldo-box .item-val .valor { font-size:1rem; font-weight:700; margin-top:2px; }
+  .saldo-box .item-val .valor.ent { color:#d4edda; }
+  .saldo-box .item-val .valor.sai { color:#f8d7da; }
+  .saldo-box .item-val .valor.saldo { color:#fff; }
+
+  .icone-toggle-saldo { cursor: pointer; transition: transform 0.2s; }
+  .icone-toggle-saldo:active { transform: scale(0.9); }
+
   nav.tabs {
     display:flex; position:fixed; bottom:0; left:0; right:0; z-index:20;
     background:#fff; box-shadow:0 -2px 12px rgba(0,0,0,.08);
@@ -112,14 +133,29 @@
 <body>
 
 <header>
-  <h1>📒 Caderneta da Bodega</h1>
-  <p>Sincronizado na nuvem (Firebase)</p>
-  <div class="saldo-box">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
     <div>
-      <div class="rotulo">Saldo em aberto</div>
-      <div class="valor" id="saldoTopo">R$ 0,00</div>
+      <h1>📒 Caderneta da Bodega</h1>
+      <p>Sincronizado na nuvem (Firebase)</p>
     </div>
-    <div style="font-size:2rem">💰</div>
+    <div id="btnToggleSaldo" class="icone-toggle-saldo" title="Mostrar/Ocultar Valores" style="font-size:1.8rem">💰</div>
+  </div>
+
+  <div class="painel-valores" id="painelValores">
+    <div class="saldo-box">
+      <div class="item-val">
+        <div class="rotulo">Receita</div>
+        <div class="valor ent" id="topoReceita">R$ 0,00</div>
+      </div>
+      <div class="item-val">
+        <div class="rotulo">Compras</div>
+        <div class="valor sai" id="topoCompras">R$ 0,00</div>
+      </div>
+      <div class="item-val">
+        <div class="rotulo">Saldo</div>
+        <div class="valor saldo" id="topoSaldo">R$ 0,00</div>
+      </div>
+    </div>
   </div>
 </header>
 
@@ -153,7 +189,7 @@
       <label for="fData">Data</label>
       <input type="date" id="fData" />
       
-      <button class="btn-lancar" id="btSalvar" type="button">💾 Salvar na nuvem</button>
+      <button class="btn-lancar" id="btSalvar" type="button">💾 Salvar na Nuvem</button>
       <div class="msg-ok" id="msgOk">✅ Lançamento salvo com sucesso!</div>
     </div>
   </section>
@@ -227,6 +263,16 @@
   }
   function hoje() { var d = new Date(); return d.toISOString().slice(0, 10); }
 
+  // Retração automática do painel de valores após 13 segundos
+  setTimeout(function() {
+    $("painelValores").classList.add("oculto");
+  }, 13000);
+
+  // Botão do saquinho de dinheiro para mostrar/ocultar os valores
+  $("btnToggleSaldo").addEventListener("click", function() {
+    $("painelValores").classList.toggle("oculto");
+  });
+
   // Abas
   document.querySelectorAll("nav.tabs button").forEach(function (bt) {
     bt.addEventListener("click", function () {
@@ -249,7 +295,7 @@
   setTipo("entrada");
   $("fData").value = hoje();
 
-  // Salvar no Firestore
+  // Salvar no Firestore e limpar campos focando no valor
   $("btSalvar").addEventListener("click", async function () {
     var valor = parseFloat($("fValor").value);
     var desc = $("fDesc").value.trim();
@@ -269,7 +315,11 @@
         criadoEm: Date.now()
       });
 
-      $("fValor").value = ""; $("fDesc").value = "";
+      // Limpar campos e mandar o cursor de volta para o valor
+      $("fValor").value = ""; 
+      $("fDesc").value = "";
+      $("fValor").focus();
+
       $("msgOk").style.display = "block";
       setTimeout(function () { $("msgOk").style.display = "none"; }, 1800);
     } catch (e) {
@@ -335,8 +385,12 @@
 
     var saldoPendente = ent - sai;
 
-    $("saldoTopo").textContent = fmt(saldoPendente);
-    $("saldoTopo").classList.toggle("neg", saldoPendente < 0);
+    // Atualizar cabeçalho (Receita, Compras, Saldo)
+    $("topoReceita").textContent = fmt(entTotal);
+    $("topoCompras").textContent = fmt(saiTotal);
+    $("topoSaldo").textContent = fmt(saldoPendente);
+    $("topoSaldo").style.color = saldoPendente < 0 ? "#ffd7d0" : "#fff";
+
     $("resEnt").textContent = fmt(entTotal);
     $("resSai").textContent = fmt(saiTotal);
     $("resSaldo").textContent = fmt(saldoPendente);
@@ -407,12 +461,11 @@
     URL.revokeObjectURL(a.href);
   });
 
-  // Limpar dados locais/aviso
   $("btLimpar").addEventListener("click", function () {
     alert("Para limpar os dados da nuvem por segurança, use o painel do Firebase ou exclua individualmente os itens.");
   });
 
-  // Escutar dados do Firestore em tempo real (Tempo real entre seu celular e o da sua esposa)
+  // Tempo real do Firestore
   const q = query(collection(db, "lancamentos"), orderBy("data", "desc"));
   onSnapshot(q, (snapshot) => {
     lancamentos = [];
