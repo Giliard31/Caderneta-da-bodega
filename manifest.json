@@ -1,7 +1,7 @@
 {
   "name": "Caderneta da Bodega",
   "short_name": "Caderneta",
-  "description": "Controle financeiro e histórico de lançamentos",
+  "description": "Controle financeiro de Giliard e Joana",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#f4f6f5",
